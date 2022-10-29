@@ -158,7 +158,7 @@ jobs:
           curl https://sh.rustup.rs -sSf | sh -s -- -y
 
         run: |
-          cargo build --release --target x86_64-unknown-freebsd
+          /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
 
     - name: Upload executable to releases
       uses: Asthowen/UploadReleaseAsset@main

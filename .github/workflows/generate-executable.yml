@@ -152,8 +152,9 @@ jobs:
       uses: vmactions/freebsd-vm@v0
       with:
         usesh: true
+        sync: sshfs
         prepare: |
-          pkg install -y curl
+          pkg install -y curl bash
           curl https://sh.rustup.rs -sSf | sh -s -- -y
 
         run: |

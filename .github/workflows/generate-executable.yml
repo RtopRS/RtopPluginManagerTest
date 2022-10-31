@@ -154,7 +154,7 @@ jobs:
         usesh: true
         sync: sshfs
         prepare: |
-          pkg install -y curl bash openssl
+          pkg install -y curl bash openssl pkgconf
           curl https://sh.rustup.rs -sSf | sh -s -- -y
 
         run: |

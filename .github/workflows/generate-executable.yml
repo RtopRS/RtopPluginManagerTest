@@ -147,14 +147,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Test in FreeBSD
-      id: test
+    - name: Build
+      id: build
       uses: vmactions/freebsd-vm@v0
       with:
         usesh: true
         sync: sshfs
         prepare: |
-          pkg install -y curl bash
+          pkg install -y curl bash openssl
           curl https://sh.rustup.rs -sSf | sh -s -- -y
 
         run: |

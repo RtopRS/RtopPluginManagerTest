@@ -156,6 +156,7 @@ jobs:
         sync: sshfs
         prepare: |
           pkg install -y curl bash openssl pkgconf devel/llvm-devel perl
+          pkg_add -v -r perl
           curl https://sh.rustup.rs -sSf | sh -s -- -y
 
         run: |

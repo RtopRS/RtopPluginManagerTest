@@ -131,7 +131,7 @@ jobs:
 
   #     - name: Upload executable to releases
   #       uses: Asthowen/UploadReleaseAsset@main
-  #       env:
+  #       env:libnghttp2
   #         GITHUB_TOKEN: ${{ github.token }}
   #       with:
   #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
@@ -155,7 +155,7 @@ jobs:
         usesh: true
         sync: sshfs
         prepare: |
-          pkg install -y curl bash openssl openssl-devel pkgconf devel/llvm-devel gmake git
+          pkg install -y curl bash openssl openssl-devel pkgconf devel/llvm-devel gmake git libnghttp2
           curl https://sh.rustup.rs -sSf | sh -s -- -y
 
         run: |

@@ -151,7 +151,7 @@ jobs:
       id: build
       uses: vmactions/freebsd-vm@v0.3.0
       with:
-        mem: 5120
+        mem: 7168
         usesh: true
         sync: sshfs
         prepare: |
@@ -159,6 +159,7 @@ jobs:
           curl https://sh.rustup.rs -sSf | sh -s -- -y
 
         run: |
+          /root/.cargo/bin/cargo clean
           /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
 
     - name: Upload executable to releases

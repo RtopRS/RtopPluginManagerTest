@@ -149,9 +149,9 @@ jobs:
 
     - name: Build
       id: build
-      uses: vmactions/freebsd-vm@v0
+      uses: vmactions/freebsd-vm@0.3.0
       with:
-        mem: 2048
+        mem: 3070
         usesh: true
         sync: sshfs
         prepare: |

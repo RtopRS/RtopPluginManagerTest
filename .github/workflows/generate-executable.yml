@@ -149,7 +149,7 @@ jobs:
 
     - name: Build
       id: build
-      uses: vmactions/freebsd-vm@0.3.0
+      uses: vmactions/freebsd-vm@v0.3.0
       with:
         mem: 3070
         usesh: true

@@ -156,11 +156,12 @@ jobs:
         sync: sshfs
         prepare: |
           pkg install -y curl bash openssl openssl-devel pkgconf devel/llvm-devel gmake git libnghttp2
+          export RUSTUP_IO_THREADS=1
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | RUSTUP_IO_THREADS=1 sh -s -- --profile minimal --default-toolchain stable -y
 
         run: |
           /root/.cargo/bin/cargo clean
-          RUSTUP_IO_THREADS=1 /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
+          export RUSTUP_IO_THREADS=1 && /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
 
     - name: Upload executable to releases
       uses: Asthowen/UploadReleaseAsset@main

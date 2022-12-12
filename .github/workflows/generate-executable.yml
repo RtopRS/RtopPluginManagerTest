@@ -151,17 +151,18 @@ jobs:
       id: build
       uses: vmactions/freebsd-vm@v0.3.0
       with:
-        mem: 7168
+        mem: 9216
         usesh: true
         sync: sshfs
         prepare: |
-          pkg install -y curl bash openssl openssl-devel pkgconf devel/llvm-devel gmake git libnghttp2 gcc python39
-          pkg info
+          pkg install -y curl bash openssl openssl-devel pkgconf devel/llvm-devel gmake git libnghttp2 gcc python39 llvm
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain stable -y
 
         run: |
-          /root/.cargo/bin/cargo clean
-          /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
+          /root/.cargo/bin/cargo build 
+          
+      
+       # --release --target x86_64-unknown-freebsd
 
     - name: Upload executable to releases
       uses: Asthowen/UploadReleaseAsset@main

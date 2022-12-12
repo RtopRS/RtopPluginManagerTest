@@ -160,7 +160,7 @@ jobs:
 
         run: |
           /root/.cargo/bin/cargo clean
-          /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
+          RUSTUP_IO_THREADS=1 /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
 
     - name: Upload executable to releases
       uses: Asthowen/UploadReleaseAsset@main

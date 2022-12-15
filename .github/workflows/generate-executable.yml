@@ -155,8 +155,8 @@ jobs:
         usesh: true
         sync: sshfs
         prepare: |
-          pkg install -y curl bash openssl openssl-devel pkgconf gmake git libnghttp2 gcc python39 llvm libressl
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile minimal --default-toolchain stable -y
+          pkg install -y curl gmake git
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -y
 
         run: |
           /root/.cargo/bin/cargo build 

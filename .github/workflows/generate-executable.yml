@@ -140,7 +140,7 @@ jobs:
   #         asset_content_type: application/octet-stream
  
   generate-freebsd-executables:
-    runs-on: macos-12
+    runs-on: macos-11
     name: Build & publish for freebsd-vm
 
     steps:
@@ -154,13 +154,11 @@ jobs:
         mem: 8192
         usesh: true
         sync: sshfs
+        release: 12.3
         run: |
           pkg install -y curl gmake git
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          /root/.cargo/bin/cargo build 
-          
-      
-       # --release --target x86_64-unknown-freebsd
+          /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
 
     - name: Upload executable to releases
       uses: Asthowen/UploadReleaseAsset@main

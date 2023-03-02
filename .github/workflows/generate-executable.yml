@@ -156,7 +156,7 @@ jobs:
         sync: sshfs
         release: 12.3
         run: |
-          pkg install -y curl gmake git libressl
+          pkg install -y curl gmake git libressl make
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           /root/.cargo/bin/cargo build --release --target x86_64-unknown-freebsd
 

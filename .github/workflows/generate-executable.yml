@@ -26,7 +26,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
 
-      - run: cargo build --release
+      - run: cargo build --release && ls && ls ./target && ls ./target/release
 
       - name: Upload executable to releases
         uses: Asthowen/UploadReleaseAsset@main
@@ -34,6 +34,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           release_tag: 0.0.1
-          asset_path: ./target/release/rtpm
+          asset_path: ./target/release/x86_64-unknown-freebsd/rtpm
           asset_name: rtpm-0.0.1-x86_64-unknown-freebsd
           asset_content_type: application/octet-stream

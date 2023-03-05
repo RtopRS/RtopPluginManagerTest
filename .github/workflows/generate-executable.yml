@@ -209,11 +209,11 @@ jobs:
         if: matrix.name == 'mips-unknown-linux-gnu' || matrix.name == 'mips64-unknown-linux-gnuabi64'
 
       - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install gcc-mipsel-linux-gnu -y
+        run: sudo apt update && sudo apt install gcc-mipsel-linux-gnu gcc-mips64el-linux-gnuabi64 -y
         if: matrix.name == 'mips64el-unknown-linux-gnuabi64' || matrix.name == 'mipsel-unknown-linux-gnu'
 
       - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install gcc-powerpc-linux-gnu -y
+        run: sudo apt update && sudo apt install gcc-powerpc-linux-gnu gcc-powerpc64-linux-gnu -y
         if: matrix.name == 'powerpc-unknown-linux-gnu' || matrix.name == 'powerpc64-unknown-linux-gnu'
 
       - name: Installing dependencies for OpenSSL

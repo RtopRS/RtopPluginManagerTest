@@ -216,6 +216,10 @@ jobs:
         run: sudo apt update && sudo apt install gcc-powerpc-linux-gnu -y
         if: matrix.name == 'powerpc-unknown-linux-gnu' || matrix.name == 'powerpc64-unknown-linux-gnu'
 
+      - name: Installing dependencies for OpenSSL
+        run: sudo apt update && sudo apt install musl-dev -y
+        if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
+
       - name: Get RTPM version
         id: rtpm_version
         run: |

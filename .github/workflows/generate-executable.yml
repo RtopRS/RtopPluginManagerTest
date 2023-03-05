@@ -105,7 +105,6 @@ jobs:
           - thumbv7neon-unknown-linux-gnueabihf
           - x86_64-unknown-linux-gnu
           - x86_64-unknown-linux-musl
-          - i686-unknown-linux-musl
 
     steps:
       - name: Checkout code
@@ -118,18 +117,18 @@ jobs:
         uses: Asthowen/setup-cross-toolchain-action@main
         with:
           target: ${{ matrix.target }}
-        if: matrix.target != 'i686-unknown-linux-musl' && matrix.target != 'x86_64-unknown-linux-musl'
+        if: matrix.target != 'x86_64-unknown-linux-musl'
 
-      - name: Installing dependencies for i686-unknown-linux-musl & x86_64-unknown-linux-musl
+      - name: Installing dependencies for x86_64-unknown-linux-musl
         run: sudo apt update && sudo apt install musl-dev musl-tools -y
-        if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
+        if: matrix.target == 'x86_64-unknown-linux-musl'
 
-      - name: Install toolchain for i686-unknown-linux-musl & x86_64-unknown-linux-musl
+      - name: Install toolchain for x86_64-unknown-linux-musl
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           targets: ${{ matrix.name }}
-        if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
+        if: matrix.target == 'x86_64-unknown-linux-musl'
           
       - name: Use GitHub cache
         uses: actions/cache@v3
@@ -204,7 +203,7 @@ jobs:
   #   runs-on: ubuntu-20.04
   #   strategy:
   #     matrix:
-  #       name: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf, i686-unknown-linux-gnu, i686-unknown-linux-musl, mips-unknown-linux-gnu, mips64-unknown-linux-gnuabi64, mips64el-unknown-linux-gnuabi64, mipsel-unknown-linux-gnu, powerpc-unknown-linux-gnu, arm-unknown-linux-gnueabi, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
+  #       name: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf, i686-unknown-linux-gnu, mips-unknown-linux-gnu, mips64-unknown-linux-gnuabi64, mips64el-unknown-linux-gnuabi64, mipsel-unknown-linux-gnu, powerpc-unknown-linux-gnu, arm-unknown-linux-gnueabi, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
 
   #   steps:
   #     - name: Checkout code
@@ -225,7 +224,7 @@ jobs:
   #         # according to the doc https://docs.rs/openssl/0.10.36/openssl/#manual
   #         export OPENSSL_LIB_DIR=/usr/lib/i386-linux-gnu/
   #         export OPENSSL_INCLUDE_DIR=/usr/include/openssl/
-  #       if: matrix.name == 'i686-unknown-linux-gnu' || matrix.name == 'i686-unknown-linux-musl'
+  #       if: matrix.name == 'i686-unknown-linux-gnu'
 
   #     - name: Installing dependencies for OpenSSL
   #       run: sudo apt install gcc-arm* make git-core ncurses-dev -y
@@ -253,7 +252,7 @@ jobs:
 
   #     - name: Installing dependencies for OpenSSL
   #       run: sudo apt update && sudo apt install musl-dev musl-tools -y
-  #       if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
+  #       if: matrix.name == 'x86_64-unknown-linux-musl'
 
   #     - name: Get RTPM version
   #       id: rtpm_version

@@ -146,6 +146,7 @@ jobs:
           asset_path: ./target/${{ matrix.name }}/release/rtpm
           asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
           asset_content_type: application/octet-stream
+
   generate-linux-executables:
     name: Build & publish for ${{ matrix.name }}
     runs-on: ubuntu-20.04
@@ -163,21 +164,20 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.name }}
 
+      - name: Installing dependencies for OpenSSL
+        run: |
+          sudo add-apt-repository universe
+          sudo dpkg --add-architecture i386 
+          sudo apt update
+          sudo apt install gcc-multilib g++-multilib libssl-dev:i386
+          # according to the doc https://docs.rs/openssl/0.10.36/openssl/#manual
+          export OPENSSL_LIB_DIR=/usr/lib/i386-linux-gnu/
+          export OPENSSL_INCLUDE_DIR=/usr/include/openssl/
+        if: matrix.name == 'i686-unknown-linux-gnu' || matrix.name == 'i686-unknown-linux-musl'
 
-        - name: Installing dependencies for OpenSSL
-          run: |
-            sudo add-apt-repository universe
-            sudo dpkg --add-architecture i386 
-            sudo apt update
-            sudo apt install gcc-multilib g++-multilib libssl-dev:i386
-            # according to the doc https://docs.rs/openssl/0.10.36/openssl/#manual
-            export OPENSSL_LIB_DIR=/usr/lib/i386-linux-gnu/
-            export OPENSSL_INCLUDE_DIR=/usr/include/openssl/
-          if: matrix.name == 'i686-unknown-linux-gnu' || matrix.name == 'i686-unknown-linux-musl'
-
-        - name: Installing dependencies for OpenSSL
-          run: apt install gcc-arm* make git-core ncurses-dev -y
-          if: matrix.name == 'armv7-unknown-linux-gnueabihf'
+      - name: Installing dependencies for OpenSSL
+        run: apt install gcc-arm* make git-core ncurses-dev -y
+        if: matrix.name == 'armv7-unknown-linux-gnueabihf'
 
       - name: Get RTPM version
         id: rtpm_version

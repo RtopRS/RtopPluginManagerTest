@@ -19,7 +19,7 @@ jobs:
       - name: Test 
         shell: pwsh
         run: |
-          $version = (Get-Content .\Cargo.toml | Select-String -Pattern 'version\s*=\s*"[^"]+"' | ForEach-Object { $_.Matches.Value } | ForEach-Object { $_ -replace 'version\s*=\s*"', '' -replace '"' })
+          $version = (Get-Content .\Cargo.toml | Select-String -Pattern '^\s*version\s*=\s*"(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value })
           echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
           echo "$version"
   # generate-freebsd-executables:

@@ -25,6 +25,9 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.name }}
 
+      - name: Set vcpkg root
+        run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Install OpenSSL for i686-pc-windows-gnu
         run: vcpkg install openssl:x86-windows-static
         if: matrix.name == 'i686-pc-windows-gnu'
@@ -191,6 +194,12 @@ jobs:
       - name: Installing dependencies for OpenSSL
         run: sudo apt install gcc-arm* make git-core ncurses-dev -y
         if: matrix.name == 'armv7-unknown-linux-gnueabihf' || matrix.name == 'arm-unknown-linux-gnueabi'
+
+      - name: Installing dependencies for OpenSSL
+        run: sudo apt update && sudo apt-get install gcc-aarch64-linux-gnu -y
+        if: matrix.name == 'armv7-unknown-linux-gnueabihf' || matrix.name == 'arm-unknown-linux-gnueabi'
+
+        
 
       - name: Installing dependencies for OpenSSL
         run: sudo apt update && sudo apt install powerpc64le-linux-gnu-gcc -y

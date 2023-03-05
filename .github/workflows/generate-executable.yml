@@ -169,7 +169,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        name: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf, i686-unknown-linux-gnu, i686-unknown-linux-musl, mips-unknown-linux-gnu, mips64-unknown-linux-gnuabi64, mips64el-unknown-linux-gnuabi64, mipsel-unknown-linux-gnu, powerpc-unknown-linux-gnu, powerpc64-unknown-linux-gnu, arm-unknown-linux-gnueabi, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
+        name: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf, i686-unknown-linux-gnu, i686-unknown-linux-musl, mips-unknown-linux-gnu, mips64-unknown-linux-gnuabi64, mips64el-unknown-linux-gnuabi64, mipsel-unknown-linux-gnu, powerpc-unknown-linux-gnu, arm-unknown-linux-gnueabi, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
 
     steps:
       - name: Checkout code
@@ -213,8 +213,8 @@ jobs:
         if: matrix.name == 'mips64el-unknown-linux-gnuabi64' || matrix.name == 'mipsel-unknown-linux-gnu'
 
       - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install gcc-powerpc-linux-gnu gcc-powerpc64-linux-gnu -y
-        if: matrix.name == 'powerpc-unknown-linux-gnu' || matrix.name == 'powerpc64-unknown-linux-gnu'
+        run: sudo apt update && sudo apt install gcc-powerpc-linux-gnu -y
+        if: matrix.name == 'powerpc-unknown-linux-gnu'
 
       - name: Installing dependencies for OpenSSL
         run: sudo apt update && sudo apt install musl-dev musl-tools -y

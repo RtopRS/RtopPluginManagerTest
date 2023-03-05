@@ -120,7 +120,7 @@ jobs:
 
       - name: Get RtopPluginManager version
         id: rtpm_version
-        run: echo "::set-output name=APP_VERSION::$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)"
+        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
       - name: Use GitHub cache
         uses: actions/cache@v3
@@ -164,8 +164,8 @@ jobs:
       - name: Get RTPM version
         id: rtpm_version
         run: |
-          sudo apt install pkg-config libssl-dev -y
-          echo "::set-output name=APP_VERSION::$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)"
+          sudo apt install pkg-config libssl-dev gcc-arm* ia32-libs -y
+          echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
       - name: Use GitHub cache
         uses: actions/cache@v3

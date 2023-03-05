@@ -136,6 +136,7 @@ jobs:
 
       - name: Upload executable to releases
         uses: Asthowen/UploadReleaseAsset@main
+        env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}

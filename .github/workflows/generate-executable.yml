@@ -146,7 +146,6 @@ jobs:
           asset_path: ./target/${{ matrix.name }}/release/rtpm
           asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
           asset_content_type: application/octet-stream
-
   generate-linux-executables:
     name: Build & publish for ${{ matrix.name }}
     runs-on: ubuntu-20.04

@@ -176,13 +176,13 @@ jobs:
         if: matrix.name == 'i686-unknown-linux-gnu' || matrix.name == 'i686-unknown-linux-musl'
 
       - name: Installing dependencies for OpenSSL
-        run: apt install gcc-arm* make git-core ncurses-dev -y
+        run: sudo apt install gcc-arm* make git-core ncurses-dev -y
         if: matrix.name == 'armv7-unknown-linux-gnueabihf'
 
       - name: Get RTPM version
         id: rtpm_version
         run: |
-          sudo apt install pkg-config libssl-dev gcc-arm* -y
+          sudo apt install gcc-arm* -y
           echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
       - name: Use GitHub cache

@@ -14,7 +14,8 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        name: [i686-pc-windows-gnu, x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
+        # name: [i686-pc-windows-gnu, x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
+        name: [x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -200,15 +201,15 @@ jobs:
         if: matrix.name == 'armv7-unknown-linux-gnueabihf' || matrix.name == 'arm-unknown-linux-gnueabi'
 
       - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install powerpc64le-linux-gnu-gcc -y
-        if: matrix.name == 'powerpc64le-linux-gnu-gcc'
+        run: sudo apt update && sudo apt install gcc-powerpc64le-linux-gnu -y
+        if: matrix.name == 'powerpc64le-unknown-linux-gnu'
 
       - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install mips-linux-gnu-gcc -y
+        run: sudo apt update && sudo apt install gcc-mips-linux-gnu -y
         if: matrix.name == 'mips-unknown-linux-gnu' || matrix.name == 'mips64-unknown-linux-gnuabi64'
 
       - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install mipsel-linux-gnu-gcc -y
+        run: sudo apt update && sudo apt install gcc-mipsel-linux-gnu -y
         if: matrix.name == 'mips64el-unknown-linux-gnuabi64' || matrix.name == 'mipsel-unknown-linux-gnu'
 
       - name: Get RTPM version

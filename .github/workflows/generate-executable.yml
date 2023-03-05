@@ -9,63 +9,181 @@ permissions:
   contents: write
 
 jobs:
-  test:
-    name: Test
+  generate-windows-executables:
+    name: Build & publish for ${{ matrix.name }}
     runs-on: windows-latest
+    strategy:
+      matrix:
+        name: [i686-pc-windows-gnu, x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Test 
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.name }}
+
+      - name: Get RTPM version 
+        id: rtpm_version
         shell: pwsh
         run: |
           $version = (Get-Content .\Cargo.toml | Select-String -Pattern '^\s*version\s*=\s*"(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value })
           echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
-          echo "$version"
-  # generate-freebsd-executables:
-  #   name: Build & publish for ${{ matrix.name }}
-  #   runs-on: ubuntu-20.04
-  #   strategy:
-  #     matrix:
-  #       rust:
-  #         - stable
-  #       target:
-  #         - x86_64-unknown-freebsd
-  #         - i686-unknown-freebsd
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+
+      - name: Use GitHub cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release
+        run: cargo build --release --locked --target ${{ matrix.name }}
+
+      - name: Upload executable to releases
+        uses: Asthowen/UploadReleaseAsset@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
+          asset_path: ./target/release/rtpm.exe
+          asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
+          asset_content_type: application/octet-stream
+
+  generate-freebsd-executables:
+    name: Build & publish for ${{ matrix.name }}
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        rust:
+          - stable
+        target:
+          - x86_64-unknown-freebsd
+          - i686-unknown-freebsd
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       
-  #     - name: Install Rust
-  #       run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
+      - name: Install Rust
+        run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
 
-  #     - name: Install cross-compilation tools
-  #       uses: Asthowen/setup-cross-toolchain-action@main
-  #       with:
-  #         target: ${{ matrix.target }}
+      - name: Install cross-compilation tools
+        uses: Asthowen/setup-cross-toolchain-action@main
+        with:
+          target: ${{ matrix.target }}
           
-  #     - name: Use GitHub cache
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.cargo/registry
-  #           ~/.cargo/git
-  #           target
-  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Use GitHub cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-  #     - name: Build release
-  #       run: cargo build --release --locked
+      - name: Build release
+        run: cargo build --release --locked
 
-  #     - name: Get RTPM version
-  #       id: rtpm_version
-  #       run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
+      - name: Get RTPM version
+        id: rtpm_version
+        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
-  #     - name: Upload executable to releases
-  #       uses: Asthowen/UploadReleaseAsset@main
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.token }}
-  #       with:
-  #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-  #         asset_path: ./target/${{ matrix.target }}/release/rtpm
-  #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
-  #         asset_content_type: application/octet-stream
+      - name: Upload executable to releases
+        uses: Asthowen/UploadReleaseAsset@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
+          asset_path: ./target/${{ matrix.target }}/release/rtpm
+          asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
+          asset_content_type: application/octet-stream
+
+  generate-macos-executables:
+    name: Build & publish for ${{ matrix.name }}
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        name: [x86_64-apple-darwin, aarch64-apple-darwin]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.name }}
+
+      - name: Get RtopPluginManager version
+        id: rtpm_version
+        run: echo "::set-output name=APP_VERSION::$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)"
+
+      - name: Use GitHub cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release
+        run: cargo build --release --locked --target ${{ matrix.name }}
+
+      - name: Upload executable to releases
+        uses: Asthowen/UploadReleaseAsset@main
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
+          asset_path: ./target/release/rtpm
+          asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+          asset_content_type: application/octet-stream
+
+  generate-linux-executables:
+    name: Build & publish for ${{ matrix.name }}
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        name: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf, i686-unknown-linux-gnu, i686-unknown-linux-musl, mips-unknown-linux-gnu, mips64-unknown-linux-gnuabi64, mips64el-unknown-linux-gnuabi64, mipsel-unknown-linux-gnu, powerpc-unknown-linux-gnu, powerpc64-unknown-linux-gnu, powerpc64le-unknown-linux-gnu, arm-unknown-linux-gnueabi,x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.name }}
+
+      - name: Get RTPM version
+        id: rtpm_version
+        run: echo "::set-output name=APP_VERSION::$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)"
+
+      - name: Use GitHub cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release
+        run: cargo build --release --locked --target ${{ matrix.name }}
+
+      - name: Upload executable to releases
+        uses: Asthowen/UploadReleaseAsset@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
+          asset_path: ./target/release/rtpm
+          asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+          asset_content_type: application/octet-stream

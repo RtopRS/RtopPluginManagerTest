@@ -15,7 +15,6 @@ jobs:
     strategy:
       matrix:
         name: [i686-pc-windows-gnu, x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -109,7 +108,6 @@ jobs:
     strategy:
       matrix:
         name: [x86_64-apple-darwin, aarch64-apple-darwin]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

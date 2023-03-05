@@ -37,12 +37,6 @@ jobs:
         run: vcpkg install openssl:x64-windows
         if: matrix.name == 'x86_64-pc-windows-msvc'
 
-      - name: Install MSYS2 for aarch64-pc-windows-msvc
-        uses: matthew-brett/setup-msys2@v2
-        with:
-          arch: aarch64
-        if: matrix.name == 'aarch64-pc-windows-msvc'
-
       - name: Install OpenSSL for aarch64-pc-windows-msvc
         run: vcpkg install openssl:aarch64-windows
         if: matrix.name == 'aarch64-pc-windows-msvc'

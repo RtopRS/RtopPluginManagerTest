@@ -217,7 +217,7 @@ jobs:
         if: matrix.name == 'powerpc-unknown-linux-gnu' || matrix.name == 'powerpc64-unknown-linux-gnu'
 
       - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install musl-dev -y
+        run: sudo apt update && sudo apt install musl-dev musl-tools -y
         if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
 
       - name: Get RTPM version

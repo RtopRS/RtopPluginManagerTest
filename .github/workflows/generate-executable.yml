@@ -74,53 +74,80 @@ jobs:
   #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
   #         asset_content_type: application/octet-stream
 
-  # generate-freebsd-executables:
-  #   name: Build & publish for ${{ matrix.target }}
-  #   runs-on: ubuntu-20.04
-  #   strategy:
-  #     matrix:
-  #       rust:
-  #         - stable
-  #       target:
-  #         - x86_64-unknown-freebsd
-  #         - i686-unknown-freebsd
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+  generate-linux-freebsd-executables:
+    name: Build & publish for ${{ matrix.target }}
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        rust:
+          - stable
+        target:
+          # - x86_64-unknown-freebsd
+          # - i686-unknown-freebsd
+          - aarch64-unknown-linux-gnu
+          - arm-unknown-linux-gnueabi
+          - armv5te-unknown-linux-gnueabi
+          - armv7-unknown-linux-gnueabi
+          - armv7-unknown-linux-gnueabihf
+          - i586-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+          - mips-unknown-linux-gnu
+          - mips64-unknown-linux-gnuabi64
+          - mips64el-unknown-linux-gnuabi64
+          - mipsel-unknown-linux-gnu
+          - powerpc-unknown-linux-gnu
+          - powerpc64-unknown-linux-gnu
+          - powerpc64le-unknown-linux-gnu
+          - riscv32gc-unknown-linux-gnu
+          - riscv64gc-unknown-linux-gnu
+          - s390x-unknown-linux-gnu
+          - sparc64-unknown-linux-gnu
+          - thumbv7neon-unknown-linux-gnueabihf
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - i686-unknown-linux-musl
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       
-  #     - name: Install Rust
-  #       run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
+      - name: Install Rust
+        run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
 
-  #     - name: Install cross-compilation tools
-  #       uses: Asthowen/setup-cross-toolchain-action@main
-  #       with:
-  #         target: ${{ matrix.target }}
+      - name: Install cross-compilation tools
+        uses: Asthowen/setup-cross-toolchain-action@main
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Installing dependencies for OpenSSL
+        run: sudo apt update && sudo apt install musl-dev musl-tools -y
+        if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
           
-  #     - name: Use GitHub cache
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.cargo/registry
-  #           ~/.cargo/git
-  #           target
-  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Use GitHub cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-  #     - name: Build release
-  #       run: cargo build --release --locked
+      - name: Build release
+        run: cargo build --release --locked
 
-  #     - name: Get RTPM version
-  #       id: rtpm_version
-  #       run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
+      - name: Get RTPM version
+        id: rtpm_version
+        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
-  #     - name: Upload executable to releases
-  #       uses: Asthowen/UploadReleaseAsset@main
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.token }}
-  #       with:
-  #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-  #         asset_path: ./target/${{ matrix.target }}/release/rtpm
-  #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
-  #         asset_content_type: application/octet-stream
+      - name: Upload executable to releases
+        uses: Asthowen/UploadReleaseAsset@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
+          asset_path: ./target/${{ matrix.target }}/release/rtpm
+          asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
+          asset_content_type: application/octet-stream
 
   # generate-macos-executables:
   #   name: Build & publish for ${{ matrix.name }}
@@ -164,85 +191,85 @@ jobs:
   #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
   #         asset_content_type: application/octet-stream
 
-  generate-linux-executables:
-    name: Build & publish for ${{ matrix.name }}
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        name: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf, i686-unknown-linux-gnu, i686-unknown-linux-musl, mips-unknown-linux-gnu, mips64-unknown-linux-gnuabi64, mips64el-unknown-linux-gnuabi64, mipsel-unknown-linux-gnu, powerpc-unknown-linux-gnu, arm-unknown-linux-gnueabi, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
+  # generate-linux-executables:
+  #   name: Build & publish for ${{ matrix.name }}
+  #   runs-on: ubuntu-20.04
+  #   strategy:
+  #     matrix:
+  #       name: [aarch64-unknown-linux-gnu, armv7-unknown-linux-gnueabihf, i686-unknown-linux-gnu, i686-unknown-linux-musl, mips-unknown-linux-gnu, mips64-unknown-linux-gnuabi64, mips64el-unknown-linux-gnuabi64, mipsel-unknown-linux-gnu, powerpc-unknown-linux-gnu, arm-unknown-linux-gnueabi, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
-          targets: ${{ matrix.name }}
+  #     - name: Install toolchain
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         toolchain: stable
+  #         targets: ${{ matrix.name }}
 
-      - name: Installing dependencies for OpenSSL
-        run: |
-          sudo add-apt-repository universe
-          sudo dpkg --add-architecture i386 
-          sudo apt update
-          sudo apt install gcc-multilib g++-multilib libssl-dev:i386
-          # according to the doc https://docs.rs/openssl/0.10.36/openssl/#manual
-          export OPENSSL_LIB_DIR=/usr/lib/i386-linux-gnu/
-          export OPENSSL_INCLUDE_DIR=/usr/include/openssl/
-        if: matrix.name == 'i686-unknown-linux-gnu' || matrix.name == 'i686-unknown-linux-musl'
+  #     - name: Installing dependencies for OpenSSL
+  #       run: |
+  #         sudo add-apt-repository universe
+  #         sudo dpkg --add-architecture i386 
+  #         sudo apt update
+  #         sudo apt install gcc-multilib g++-multilib libssl-dev:i386
+  #         # according to the doc https://docs.rs/openssl/0.10.36/openssl/#manual
+  #         export OPENSSL_LIB_DIR=/usr/lib/i386-linux-gnu/
+  #         export OPENSSL_INCLUDE_DIR=/usr/include/openssl/
+  #       if: matrix.name == 'i686-unknown-linux-gnu' || matrix.name == 'i686-unknown-linux-musl'
 
-      - name: Installing dependencies for OpenSSL
-        run: sudo apt install gcc-arm* make git-core ncurses-dev -y
-        if: matrix.name == 'armv7-unknown-linux-gnueabihf' || matrix.name == 'arm-unknown-linux-gnueabi'
+  #     - name: Installing dependencies for OpenSSL
+  #       run: sudo apt install gcc-arm* make git-core ncurses-dev -y
+  #       if: matrix.name == 'armv7-unknown-linux-gnueabihf' || matrix.name == 'arm-unknown-linux-gnueabi'
 
-      - name: Installing dependencies for OpenSSL
-        run: sudo apt install gcc-arm* make git-core ncurses-dev -y
-        if: matrix.name == 'armv7-unknown-linux-gnueabihf' || matrix.name == 'arm-unknown-linux-gnueabi'
+  #     - name: Installing dependencies for OpenSSL
+  #       run: sudo apt install gcc-arm* make git-core ncurses-dev -y
+  #       if: matrix.name == 'armv7-unknown-linux-gnueabihf' || matrix.name == 'arm-unknown-linux-gnueabi'
 
-      - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install gcc-aarch64-linux-gnu -y
-        if: matrix.name == 'aarch64-unknown-linux-gnu'
+  #     - name: Installing dependencies for OpenSSL
+  #       run: sudo apt update && sudo apt install gcc-aarch64-linux-gnu -y
+  #       if: matrix.name == 'aarch64-unknown-linux-gnu'
 
-      - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install gcc-mips-linux-gnu -y
-        if: matrix.name == 'mips-unknown-linux-gnu' || matrix.name == 'mips64-unknown-linux-gnuabi64'
+  #     - name: Installing dependencies for OpenSSL
+  #       run: sudo apt update && sudo apt install gcc-mips-linux-gnu -y
+  #       if: matrix.name == 'mips-unknown-linux-gnu' || matrix.name == 'mips64-unknown-linux-gnuabi64'
 
-      - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install gcc-mipsel-linux-gnu gcc-mips64el-linux-gnuabi64 -y
-        if: matrix.name == 'mips64el-unknown-linux-gnuabi64' || matrix.name == 'mipsel-unknown-linux-gnu'
+  #     - name: Installing dependencies for OpenSSL
+  #       run: sudo apt update && sudo apt install gcc-mipsel-linux-gnu gcc-mips64el-linux-gnuabi64 -y
+  #       if: matrix.name == 'mips64el-unknown-linux-gnuabi64' || matrix.name == 'mipsel-unknown-linux-gnu'
 
-      - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install gcc-powerpc-linux-gnu -y
-        if: matrix.name == 'powerpc-unknown-linux-gnu'
+  #     - name: Installing dependencies for OpenSSL
+  #       run: sudo apt update && sudo apt install gcc-powerpc-linux-gnu -y
+  #       if: matrix.name == 'powerpc-unknown-linux-gnu'
 
-      - name: Installing dependencies for OpenSSL
-        run: sudo apt update && sudo apt install musl-dev musl-tools -y
-        if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
+  #     - name: Installing dependencies for OpenSSL
+  #       run: sudo apt update && sudo apt install musl-dev musl-tools -y
+  #       if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
 
-      - name: Get RTPM version
-        id: rtpm_version
-        run: |
-          echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
+  #     - name: Get RTPM version
+  #       id: rtpm_version
+  #       run: |
+  #         echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
-      - name: Use GitHub cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+  #     - name: Use GitHub cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.cargo/registry
+  #           ~/.cargo/git
+  #           target
+  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build release
-        run: cargo build --release --locked --target ${{ matrix.name }}
+  #     - name: Build release
+  #       run: cargo build --release --locked --target ${{ matrix.name }}
 
-      - name: Upload executable to releases
-        uses: Asthowen/UploadReleaseAsset@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-          asset_path: ./target/${{ matrix.name }}/release/rtpm
-          asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
-          asset_content_type: application/octet-stream
+  #     - name: Upload executable to releases
+  #       uses: Asthowen/UploadReleaseAsset@main
+  #       env:
+  #         GITHUB_TOKEN: ${{ github.token }}
+  #       with:
+  #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
+  #         asset_path: ./target/${{ matrix.name }}/release/rtpm
+  #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+  #         asset_content_type: application/octet-stream

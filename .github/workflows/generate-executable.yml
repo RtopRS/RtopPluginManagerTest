@@ -25,6 +25,9 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.name }}
 
+      - run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - run: vcpkg install openssl:x64-windows-static-md
+
       - name: Get RTPM version 
         id: rtpm_version
         shell: pwsh
@@ -54,53 +57,53 @@ jobs:
           asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
           asset_content_type: application/octet-stream
 
-  generate-freebsd-executables:
-    name: Build & publish for ${{ matrix.target }}
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        rust:
-          - stable
-        target:
-          - x86_64-unknown-freebsd
-          - i686-unknown-freebsd
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  # generate-freebsd-executables:
+  #   name: Build & publish for ${{ matrix.target }}
+  #   runs-on: ubuntu-20.04
+  #   strategy:
+  #     matrix:
+  #       rust:
+  #         - stable
+  #       target:
+  #         - x86_64-unknown-freebsd
+  #         - i686-unknown-freebsd
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
       
-      - name: Install Rust
-        run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
+  #     - name: Install Rust
+  #       run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
 
-      - name: Install cross-compilation tools
-        uses: Asthowen/setup-cross-toolchain-action@main
-        with:
-          target: ${{ matrix.target }}
+  #     - name: Install cross-compilation tools
+  #       uses: Asthowen/setup-cross-toolchain-action@main
+  #       with:
+  #         target: ${{ matrix.target }}
           
-      - name: Use GitHub cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+  #     - name: Use GitHub cache
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.cargo/registry
+  #           ~/.cargo/git
+  #           target
+  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build release
-        run: cargo build --release --locked
+  #     - name: Build release
+  #       run: cargo build --release --locked
 
-      - name: Get RTPM version
-        id: rtpm_version
-        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
+  #     - name: Get RTPM version
+  #       id: rtpm_version
+  #       run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
-      - name: Upload executable to releases
-        uses: Asthowen/UploadReleaseAsset@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-          asset_path: ./target/${{ matrix.target }}/release/rtpm
-          asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
-          asset_content_type: application/octet-stream
+  #     - name: Upload executable to releases
+  #       uses: Asthowen/UploadReleaseAsset@main
+  #       env:
+  #         GITHUB_TOKEN: ${{ github.token }}
+  #       with:
+  #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
+  #         asset_path: ./target/${{ matrix.target }}/release/rtpm
+  #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
+  #         asset_content_type: application/octet-stream
 
   generate-macos-executables:
     name: Build & publish for ${{ matrix.name }}
@@ -140,7 +143,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-          asset_path: ./target/release/rtpm
+          asset_path: ./target/${{ matrix.name }}/release/rtpm
           asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
           asset_content_type: application/octet-stream
 
@@ -161,10 +164,26 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.name }}
 
+
+        - name: Installing dependencies for OpenSSL
+          run: |
+            sudo add-apt-repository universe
+            sudo dpkg --add-architecture i386 
+            sudo apt update
+            sudo apt install gcc-multilib g++-multilib libssl-dev:i386
+            # according to the doc https://docs.rs/openssl/0.10.36/openssl/#manual
+            export OPENSSL_LIB_DIR=/usr/lib/i386-linux-gnu/
+            export OPENSSL_INCLUDE_DIR=/usr/include/openssl/
+          if: matrix.name == 'i686-unknown-linux-gnu' || matrix.name == 'i686-unknown-linux-musl'
+
+        - name: Installing dependencies for OpenSSL
+          run: apt install gcc-arm* make git-core ncurses-dev -y
+          if: matrix.name == 'armv7-unknown-linux-gnueabihf'
+
       - name: Get RTPM version
         id: rtpm_version
         run: |
-          sudo apt install pkg-config libssl-dev gcc-arm* ia32-libs -y
+          sudo apt install pkg-config libssl-dev gcc-arm* -y
           echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
       - name: Use GitHub cache

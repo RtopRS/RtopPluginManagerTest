@@ -118,10 +118,11 @@ jobs:
         uses: Asthowen/setup-cross-toolchain-action@main
         with:
           target: ${{ matrix.target }}
+        if: matrix.target != 'i686-unknown-linux-musl' && matrix.target != 'x86_64-unknown-linux-musl'
 
-      - name: Installing dependencies for OpenSSL
+      - name: Installing dependencies for i686-unknown-linux-musl & x86_64-unknown-linux-musl
         run: sudo apt update && sudo apt install musl-dev musl-tools -y
-        if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
+        if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
           
       - name: Use GitHub cache
         uses: actions/cache@v3

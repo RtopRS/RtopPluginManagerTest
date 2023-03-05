@@ -55,7 +55,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   generate-freebsd-executables:
-    name: Build & publish for ${{ matrix.name }}
+    name: Build & publish for ${{ matrix.target }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -163,7 +163,9 @@ jobs:
 
       - name: Get RTPM version
         id: rtpm_version
-        run: echo "::set-output name=APP_VERSION::$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)"
+        run: |
+          sudo apt install pkg-config libssl-dev -y
+          echo "::set-output name=APP_VERSION::$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)"
 
       - name: Use GitHub cache
         uses: actions/cache@v3

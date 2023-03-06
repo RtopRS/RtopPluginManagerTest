@@ -29,30 +29,31 @@ jobs:
       - name: Set vcpkg root
         run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          install: >-
-            perl
-            mingw-w64-x86_64-openssl
+      - run: vcpkg install openssl:x64-windows-static-md
 
-      - name: Install OpenSSL for i686-pc-windows-gnu
-        run: vcpkg install openssl:x86-windows-static
-        if: matrix.name == 'i686-pc-windows-gnu'
+      # - uses: msys2/setup-msys2@v2
+      #   with:
+      #     update: true
+      #     install: >-
+      #       perl
+      #       mingw-w64-x86_64-openssl
+      #   if: matrix.name == 'x86_64-pc-windows-gnu' || matrix.name == 'x86_64-pc-windows-msvc'
 
-      # - name: Install OpenSSL for x86_64-pc-windows-gnu
-      #   shell: pwsh
-      #   run: |
-      #     vcpkg install openssl:x64-windows-static
-      #   if: matrix.name == 'x86_64-pc-windows-gnu'
+      # - uses: msys2/setup-msys2@v2
+      #   with:
+      #     update: true
+      #     install: >-
+      #       perl
+      #       mingw-w64-i686-openssl
+      #   if: matrix.name == 'i686-pc-windows-gnu'
 
-      - name: Install OpenSSL for x86_64-pc-windows-msvc
-        run: vcpkg install openssl:x64-windows
-        if: matrix.name == 'x86_64-pc-windows-msvc'
-
-      - name: Install OpenSSL for aarch64-pc-windows-msvc
-        run: vcpkg install openssl:arm64-windows
-        if: matrix.name == 'aarch64-pc-windows-msvc'
+      # - uses: msys2/setup-msys2@v2
+      #   with:
+      #     update: true
+      #     install: >-
+      #       perl
+      #       mingw-w64-i686-openssl
+      #   if: matrix.name == 'aarch64-pc-windows-msvc'
 
       - name: Get RTPM version 
         id: rtpm_version
@@ -61,14 +62,22 @@ jobs:
           $version = (Get-Content .\Cargo.toml | Select-String -Pattern '^\s*version\s*=\s*"(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value })
           echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
 
-      - name: Use GitHub cache
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: ~/.cargo/registry/index
+          key: index-${{ runner.os }}-${{ github.run_number }}
+          restore-keys: |
+            index-${{ runner.os }}-
+      - run: cargo fetch
+      - uses: actions/cache@v3
+        with:
+          path: target
+          key: target-${{ github.job }}-${{ steps.rust-version.outputs.version }}-${{ hashFiles('Cargo.lock') }}
+      - run: cargo generate-lockfile
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry/cache
+          key: registry-${{ runner.os }}-${{ steps.rust-version.outputs.version }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Build release
         run: cargo build --release --locked --target ${{ matrix.name }}

@@ -15,11 +15,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get RTPM version
         id: rtpm_version
-        run: echo "::set-output name=APP_VERSION::$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)"
+        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
       - name: Build amd64 debian package
         uses: asthowen/CargoDebAmd64@main

@@ -20,12 +20,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
-          targets: ${{ matrix.name }}
-
       - name: Set vcpkg root
         run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
 
@@ -54,6 +48,13 @@ jobs:
       #       perl
       #       mingw-w64-i686-openssl
       #   if: matrix.name == 'aarch64-pc-windows-msvc'
+
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.name }}
 
       - name: Get RTPM version 
         id: rtpm_version

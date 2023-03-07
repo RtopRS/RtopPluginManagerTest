@@ -12,7 +12,6 @@ jobs:
   generate-linux-packages:
     name: Generate Linux packages and post them to release
     runs-on: ubuntu-20.04
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -36,7 +35,7 @@ jobs:
           mv ./target/armv7-unknown-linux-musleabih/debian/rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_armhf.deb ./rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_arm.deb
           mv ./target/generate-rpm/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-1.x86_64.rpm ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-1.x86_64.rpm
 
-       - name: Upload executables to release
+      - name: Upload executables to release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}

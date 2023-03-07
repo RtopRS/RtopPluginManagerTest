@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # name: [i686-pc-windows-gnu, x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
-        name: [x86_64-pc-windows-gnu]
+        name: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -65,22 +65,18 @@ jobs:
           $version = (Get-Content .\Cargo.toml | Select-String -Pattern '^\s*version\s*=\s*"(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value })
           echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
         with:
-          path: ~/.cargo/registry/index
-          key: index-${{ runner.os }}-${{ github.run_number }}
-          restore-keys: |
-            index-${{ runner.os }}-
-      - run: cargo fetch
-      - uses: actions/cache@v3
-        with:
-          path: target
-          key: target-${{ github.job }}-${{ steps.rust-version.outputs.version }}-${{ hashFiles('Cargo.lock') }}
-      - run: cargo generate-lockfile
-      - uses: actions/cache@v3
-        with:
-          path: ~/.cargo/registry/cache
-          key: registry-${{ runner.os }}-${{ steps.rust-version.outputs.version }}-${{ hashFiles('Cargo.lock') }}
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
       - name: Build release
         run: cargo build --release --locked --target ${{ matrix.name }}

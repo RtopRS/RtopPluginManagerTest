@@ -9,192 +9,178 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  generate-windows-executables:
+    name: Build & publish for ${{ matrix.name }}
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        name: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
-      - name: Build
-        run: echo ${{ github.sha }} > Release.txt
-      - name: Test
-        run: cat Release.txt
-      - name: Release
+
+      - name: Install OpenSSL
+        run: |
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          vcpkg integrate install
+          vcpkg install openssl:x64-windows-static-md
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.name }}
+
+      - name: Get RTPM version 
+        id: rtpm_version
+        shell: pwsh
+        run: |
+          $version = (Get-Content .\Cargo.toml | Select-String -Pattern '^\s*version\s*=\s*"(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value })
+          echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release
+        run: |
+          cargo build --release --locked --target ${{ matrix.target }}
+          mv ./target/${{ matrix.target }}/release/rtpm.exe ./target/${{ matrix.target }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}.exe
+
+      - name: Upload executable to release
         uses: softprops/action-gh-release@v1
         with:
-          files: Release.txt
-          tag_name: 0.0.1
-  # generate-windows-executables:
-  #   name: Build & publish for ${{ matrix.name }}
-  #   runs-on: windows-latest
-  #   strategy:
-  #     matrix:
-  #       # name: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
-  #       name: [i686-pc-windows-msvc]
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+          files: /target/${{ matrix.target }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
+          tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}
 
-  #     - name: Set vcpkg root
-  #       run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+  generate-linux-freebsd-executables:
+    name: Build & publish for ${{ matrix.target }}
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        rust:
+          - stable
+        target:
+          - x86_64-unknown-freebsd
+          - i686-unknown-freebsd
+          - aarch64-unknown-linux-gnu
+          - arm-unknown-linux-gnueabi
+          - armv7-unknown-linux-gnueabi
+          - armv7-unknown-linux-gnueabihf
+          - i586-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+          - mips-unknown-linux-gnu
+          - mips64-unknown-linux-gnuabi64
+          - mips64el-unknown-linux-gnuabi64
+          - mipsel-unknown-linux-gnu
+          - powerpc-unknown-linux-gnu
+          - powerpc64-unknown-linux-gnu
+          - powerpc64le-unknown-linux-gnu
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - i686-unknown-linux-musl
 
-  #     - run: |
-  #         vcpkg integrate install
-  #         vcpkg install openssl:x64-windows-static-md
-
-  #     - name: Install toolchain
-  #       uses: dtolnay/rust-toolchain@stable
-  #       with:
-  #         toolchain: stable
-  #         targets: ${{ matrix.name }}
-
-  #     - name: Get RTPM version 
-  #       id: rtpm_version
-  #       shell: pwsh
-  #       run: |
-  #         $version = (Get-Content .\Cargo.toml | Select-String -Pattern '^\s*version\s*=\s*"(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value })
-  #         echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
-
-  #     - name: Set up cargo cache
-  #       uses: actions/cache@v3
-  #       continue-on-error: false
-  #       with:
-  #         path: |
-  #           ~/.cargo/bin/
-  #           ~/.cargo/registry/index/
-  #           ~/.cargo/registry/cache/
-  #           ~/.cargo/git/db/
-  #           target/
-  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-  #         restore-keys: ${{ runner.os }}-cargo-
-
-  #     - name: Build release
-  #       run: cargo build --release --locked --target ${{ matrix.name }}
-
-  #     - name: Upload executable to releases
-  #       uses: Asthowen/UploadReleaseAsset@main
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.token }}
-  #       with:
-  #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-  #         asset_path: ./target/${{ matrix.name }}/release/rtpm.exe
-  #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
-  #         asset_content_type: application/octet-stream
-
-  # generate-linux-freebsd-executables:
-  #   name: Build & publish for ${{ matrix.target }}
-  #   runs-on: ubuntu-20.04
-  #   strategy:
-  #     matrix:
-  #       rust:
-  #         - stable
-  #       target:
-  #         - x86_64-unknown-freebsd
-  #         - i686-unknown-freebsd
-  #         - aarch64-unknown-linux-gnu
-  #         - arm-unknown-linux-gnueabi
-  #         - armv7-unknown-linux-gnueabi
-  #         - armv7-unknown-linux-gnueabihf
-  #         - i586-unknown-linux-gnu
-  #         - i686-unknown-linux-gnu
-  #         - mips-unknown-linux-gnu
-  #         - mips64-unknown-linux-gnuabi64
-  #         - mips64el-unknown-linux-gnuabi64
-  #         - mipsel-unknown-linux-gnu
-  #         - powerpc-unknown-linux-gnu
-  #         - powerpc64-unknown-linux-gnu
-  #         - powerpc64le-unknown-linux-gnu
-  #         - x86_64-unknown-linux-gnu
-  #         - x86_64-unknown-linux-musl
-  #         - i686-unknown-linux-musl
-
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       
-  #     - name: Install Rust
-  #       run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
+      - name: Install Rust
+        run: rustup update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
 
-  #     - name: Install cross-compilation tools
-  #       uses: Asthowen/setup-cross-toolchain-action@main
-  #       with:
-  #         target: ${{ matrix.target }}
-  #       if: matrix.target != 'i686-unknown-linux-musl' && matrix.target != 'x86_64-unknown-linux-musl'
+      - name: Install cross-compilation tools
+        uses: Asthowen/setup-cross-toolchain-action@main
+        with:
+          target: ${{ matrix.target }}
+        if: matrix.target != 'i686-unknown-linux-musl' && matrix.target != 'x86_64-unknown-linux-musl'
 
-  #     - name: Installing dependencies for i686-unknown-linux-musl & x86_64-unknown-linux-musl
-  #       run: sudo apt update && sudo apt install musl-dev musl-tools -y
-  #       if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
+      - name: Installing dependencies for i686-unknown-linux-musl & x86_64-unknown-linux-musl
+        run: sudo apt update && sudo apt install musl-dev musl-tools -y
+        if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
 
-  #     - name: Install toolchain for i686-unknown-linux-musl & x86_64-unknown-linux-musl
-  #       uses: dtolnay/rust-toolchain@stable
-  #       with:
-  #         toolchain: stable
-  #         targets: ${{ matrix.target }}
-  #       if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
+      - name: Install toolchain for i686-unknown-linux-musl & x86_64-unknown-linux-musl
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+        if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
           
-  #     - name: Use GitHub cache
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.cargo/registry
-  #           ~/.cargo/git
-  #           target
-  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
-  #     - name: Build release
-  #       run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Build release
+        run: |
+          cargo build --release --locked --target ${{ matrix.target }}
+          mv ./target/${{ matrix.target }}/release/rtpm ./target/${{ matrix.target }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
 
-  #     - name: Get RTPM version
-  #       id: rtpm_version
-  #       run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
+      - name: Get RTPM version
+        id: rtpm_version
+        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
-  #     - name: Upload executable to releases
-  #       uses: Asthowen/UploadReleaseAsset@main
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.token }}
-  #       with:
-  #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-  #         asset_path: ./target/${{ matrix.target }}/release/rtpm
-  #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
-  #         asset_content_type: application/octet-stream
+      - name: Upload executable to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./target/${{ matrix.target }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}.exe
+          tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}
 
-  # generate-macos-executables:
-  #   name: Build & publish for ${{ matrix.name }}
-  #   runs-on: macos-latest
-  #   strategy:
-  #     matrix:
-  #       name: [x86_64-apple-darwin, aarch64-apple-darwin]
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+  generate-macos-executables:
+    name: Build & publish for ${{ matrix.name }}
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        name: [x86_64-apple-darwin, aarch64-apple-darwin]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  #     - name: Install toolchain
-  #       uses: dtolnay/rust-toolchain@stable
-  #       with:
-  #         toolchain: stable
-  #         targets: ${{ matrix.name }}
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.name }}
 
-  #     - name: Get RtopPluginManager version
-  #       id: rtpm_version
-  #       run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
+      - name: Get RtopPluginManager version
+        id: rtpm_version
+        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
-  #     - name: Use GitHub cache
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.cargo/registry
-  #           ~/.cargo/git
-  #           target
-  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
-  #     - name: Build release
-  #       run: cargo build --release --locked --target ${{ matrix.name }}
+      - name: Build release
+        run: |
+          cargo build --release --locked --target ${{ matrix.target }}
+          mv ./target/${{ matrix.target }}/release/rtpm ./target/${{ matrix.target }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
 
-  #     - name: Upload executable to releases
-  #       uses: Asthowen/UploadReleaseAsset@main
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.token }}
-  #       with:
-  #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-  #         asset_path: ./target/${{ matrix.name }}/release/rtpm
-  #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
-  #         asset_content_type: application/octet-stream
+      - name: Upload executable to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./target/${{ matrix.target }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}.exe
+          tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}

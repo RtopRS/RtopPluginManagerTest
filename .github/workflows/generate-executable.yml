@@ -54,12 +54,12 @@ jobs:
       - name: Build release
         run: |
           cargo build --release --locked --target ${{ matrix.name }}
-          mv ./target/${{ matrix.name }}/release/rtpm.exe ./target/${{ matrix.name }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
+          mv ./target/${{ matrix.name }}/release/rtpm.exe ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
 
       - name: Upload executable to release
         uses: softprops/action-gh-release@v1
         with:
-          files: /target/${{ matrix.name }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
+          files: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
           tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}
 
   generate-linux-freebsd-executables:
@@ -129,7 +129,7 @@ jobs:
       - name: Build release
         run: |
           cargo build --release --locked --target ${{ matrix.name }}
-          mv ./target/${{ matrix.name }}/release/rtpm ./target/${{ matrix.name }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+          mv ./target/${{ matrix.name }}/release/rtpm ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
 
       - name: Get RTPM version
         id: rtpm_version
@@ -138,7 +138,7 @@ jobs:
       - name: Upload executable to release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./target/${{ matrix.name }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+          files: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
           tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}
 
   generate-macos-executables:
@@ -177,10 +177,10 @@ jobs:
       - name: Build release
         run: |
           cargo build --release --locked --target ${{ matrix.name }}
-          mv ./target/${{ matrix.name }}/release/rtpm ./target/${{ matrix.name }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+          mv ./target/${{ matrix.name }}/release/rtpm ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
 
       - name: Upload executable to release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./target/${{ matrix.name }}/release/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+          files: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
           tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}

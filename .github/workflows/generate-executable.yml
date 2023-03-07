@@ -126,14 +126,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
+      - name: Get RTPM version
+        id: rtpm_version
+        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
+
       - name: Build release
         run: |
           cargo build --release --locked --target ${{ matrix.target }}
           mv ./target/${{ matrix.target }}/release/rtpm ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
-
-      - name: Get RTPM version
-        id: rtpm_version
-        run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
       - name: Upload executable to release
         uses: softprops/action-gh-release@v1

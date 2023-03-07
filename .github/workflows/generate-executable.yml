@@ -9,87 +9,76 @@ permissions:
   contents: write
 
 jobs:
-  generate-windows-executables:
-    name: Build & publish for ${{ matrix.name }}
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        # name: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
-        name: [i686-pc-windows-msvc]
+  build:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Set vcpkg root
-        run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - run: |
-          vcpkg integrate install
-          vcpkg install openssl:x64-windows-static-md
-
-      # - uses: msys2/setup-msys2@v2
-      #   with:
-      #     update: true
-      #     install: >-
-      #       perl
-      #       mingw-w64-x86_64-openssl
-      #   if: matrix.name == 'x86_64-pc-windows-gnu' || matrix.name == 'x86_64-pc-windows-msvc'
-
-      # - uses: msys2/setup-msys2@v2
-      #   with:
-      #     update: true
-      #     install: >-
-      #       perl
-      #       mingw-w64-i686-openssl
-      #   if: matrix.name == 'i686-pc-windows-gnu'
-
-      # - uses: msys2/setup-msys2@v2
-      #   with:
-      #     update: true
-      #     install: >-
-      #       perl
-      #       mingw-w64-i686-openssl
-      #   if: matrix.name == 'aarch64-pc-windows-msvc'
-
-
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Build
+        run: echo ${{ github.sha }} > Release.txt
+      - name: Test
+        run: cat Release.txt
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          toolchain: stable
-          targets: ${{ matrix.name }}
+          files: Release.txt
+          tag_name: 0.0.1
+  # generate-windows-executables:
+  #   name: Build & publish for ${{ matrix.name }}
+  #   runs-on: windows-latest
+  #   strategy:
+  #     matrix:
+  #       # name: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
+  #       name: [i686-pc-windows-msvc]
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      - name: Get RTPM version 
-        id: rtpm_version
-        shell: pwsh
-        run: |
-          $version = (Get-Content .\Cargo.toml | Select-String -Pattern '^\s*version\s*=\s*"(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value })
-          echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
+  #     - name: Set vcpkg root
+  #       run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+  #     - run: |
+  #         vcpkg integrate install
+  #         vcpkg install openssl:x64-windows-static-md
 
-      - name: Build release
-        run: cargo build --release --locked --target ${{ matrix.name }}
+  #     - name: Install toolchain
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         toolchain: stable
+  #         targets: ${{ matrix.name }}
 
-      - name: Upload executable to releases
-        uses: Asthowen/UploadReleaseAsset@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
-          asset_path: ./target/${{ matrix.name }}/release/rtpm.exe
-          asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
-          asset_content_type: application/octet-stream
+  #     - name: Get RTPM version 
+  #       id: rtpm_version
+  #       shell: pwsh
+  #       run: |
+  #         $version = (Get-Content .\Cargo.toml | Select-String -Pattern '^\s*version\s*=\s*"(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value })
+  #         echo "APP_VERSION=$version" >> $env:GITHUB_OUTPUT
+
+  #     - name: Set up cargo cache
+  #       uses: actions/cache@v3
+  #       continue-on-error: false
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           target/
+  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+  #         restore-keys: ${{ runner.os }}-cargo-
+
+  #     - name: Build release
+  #       run: cargo build --release --locked --target ${{ matrix.name }}
+
+  #     - name: Upload executable to releases
+  #       uses: Asthowen/UploadReleaseAsset@main
+  #       env:
+  #         GITHUB_TOKEN: ${{ github.token }}
+  #       with:
+  #         release_tag: ${{ steps.rtpm_version.outputs.APP_VERSION }}
+  #         asset_path: ./target/${{ matrix.name }}/release/rtpm.exe
+  #         asset_name: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}.exe
+  #         asset_content_type: application/octet-stream
 
   # generate-linux-freebsd-executables:
   #   name: Build & publish for ${{ matrix.target }}

@@ -14,8 +14,8 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        # name: [i686-pc-windows-gnu, x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
-        name: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
+        # name: [x86_64-pc-windows-msvc, i686-pc-windows-msvc]
+        name: [x86_64-pc-windows-msvc]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

@@ -24,8 +24,8 @@ jobs:
         run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - run: |
-        vcpkg integrate install
-        vcpkg install openssl:x64-windows-static-md perl
+          vcpkg integrate install
+          vcpkg install openssl:x64-windows-static-md perl
 
       # - uses: msys2/setup-msys2@v2
       #   with:

@@ -63,13 +63,13 @@ jobs:
           tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}
 
   generate-linux-freebsd-executables:
-    name: Build & publish for ${{ matrix.name }}
+    name: Build & publish for ${{ matrix.target }}
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         rust:
           - stable
-        name:
+        target:
           - x86_64-unknown-freebsd
           - i686-unknown-freebsd
           - aarch64-unknown-linux-gnu
@@ -99,19 +99,19 @@ jobs:
       - name: Install cross-compilation tools
         uses: Asthowen/setup-cross-toolchain-action@main
         with:
-          target: ${{ matrix.name }}
-        if: matrix.name != 'i686-unknown-linux-musl' && matrix.name != 'x86_64-unknown-linux-musl'
+          target: ${{ matrix.target }}
+        if: matrix.target != 'i686-unknown-linux-musl' && matrix.target != 'x86_64-unknown-linux-musl'
 
       - name: Installing dependencies for i686-unknown-linux-musl & x86_64-unknown-linux-musl
         run: sudo apt update && sudo apt install musl-dev musl-tools -y
-        if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
+        if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
 
       - name: Install toolchain for i686-unknown-linux-musl & x86_64-unknown-linux-musl
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          targets: ${{ matrix.name }}
-        if: matrix.name == 'i686-unknown-linux-musl' || matrix.name == 'x86_64-unknown-linux-musl'
+          targets: ${{ matrix.target }}
+        if: matrix.target == 'i686-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl'
           
       - name: Set up cargo cache
         uses: actions/cache@v3
@@ -128,8 +128,8 @@ jobs:
 
       - name: Build release
         run: |
-          cargo build --release --locked --target ${{ matrix.name }}
-          mv ./target/${{ matrix.name }}/release/rtpm ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+          cargo build --release --locked --target ${{ matrix.target }}
+          mv ./target/${{ matrix.target }}/release/rtpm ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
 
       - name: Get RTPM version
         id: rtpm_version
@@ -138,7 +138,7 @@ jobs:
       - name: Upload executable to release
         uses: softprops/action-gh-release@v1
         with:
-          files: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.name }}
+          files: rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-${{ matrix.target }}
           tag_name: ${{ steps.rtpm_version.outputs.APP_VERSION }}
 
   generate-macos-executables:

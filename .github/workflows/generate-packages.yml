@@ -20,11 +20,11 @@ jobs:
         id: rtpm_version
         run: echo "APP_VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)" >> $GITHUB_OUTPUT
 
-      - name: Build amd64 debian package
-        uses: asthowen/CargoDebAmd64@main
+      # - name: Build amd64 debian package
+      #   uses: asthowen/CargoDebAmd64@main
 
-      # - name: Build ARMv7 debian package
-      #   uses: asthowen/CargoDebARMv7@main
+      - name: Build ARMv7 debian package
+        uses: asthowen/CargoDebARMv7@main
 
       # - name: Build rpm package
       #   uses: asthowen/CargoGenerateRPM@main
@@ -32,8 +32,11 @@ jobs:
       - name: Move files
         run: |
           sudo chmod -R 777 ./target
-          mv ./target/x86_64-unknown-linux-musl/debian/rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_amd64.deb ./rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_amd64.deb
-          # mv ./target/armv7-unknown-linux-musleabih/debian/rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_armhf.deb ./rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_arm.deb
+          ls ./target/
+          ls ./target/armv7-unknown-linux-musleabih
+          ls ./target/armv7-unknown-linux-musleabih/debian
+          # mv ./target/x86_64-unknown-linux-musl/debian/rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_amd64.deb ./rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_amd64.deb
+          mv ./target/armv7-unknown-linux-musleabih/debian/rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_armhf.deb ./rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_arm.deb
           # mv ./target/generate-rpm/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-1.x86_64.rpm ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-1.x86_64.rpm
 
       - name: Upload executables to release

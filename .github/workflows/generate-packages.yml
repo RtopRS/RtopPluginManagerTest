@@ -34,8 +34,9 @@ jobs:
           sudo chmod -R 777 ./target
           ls ./target/
           ls ./target/armv7-unknown-linux-musleabih
-          ls ./target/armv7-unknown-linux-musleabih/debian
-          # mv ./target/x86_64-unknown-linux-musl/debian/rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_amd64.deb ./rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_amd64.deb
+          ls ./target/armv7-unknown-linux-musleabih/release
+          ls ./target/armv7-unknown-linux-musleabih/reease/debian
+          # mv ./target/x86_64-unknown-linux-musl/release/debian/rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_amd64.deb ./rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_amd64.deb
           mv ./target/armv7-unknown-linux-musleabih/debian/rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_armhf.deb ./rtpm_${{ steps.rtpm_version.outputs.APP_VERSION }}_arm.deb
           # mv ./target/generate-rpm/rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-1.x86_64.rpm ./rtpm-${{ steps.rtpm_version.outputs.APP_VERSION }}-1.x86_64.rpm
 
